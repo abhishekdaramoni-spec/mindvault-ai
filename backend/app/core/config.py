@@ -2,8 +2,12 @@
 from pydantic_settings import BaseSettings
 from pathlib import Path
 
+import os
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = BASE_DIR / "data"
+# In serverless environments like Vercel or AWS Lambda, the root filesystem is read-only except /tmp
+IS_SERVERLESS = os.environ.get("VERCEL") is not None or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") is not None
+DATA_DIR = Path("/tmp/data") if IS_SERVERLESS else BASE_DIR / "data"
 UPLOADS_DIR = DATA_DIR / "uploads"
 INDEXES_DIR = DATA_DIR / "indexes"
 DB_PATH = DATA_DIR / "mindvault.db"
