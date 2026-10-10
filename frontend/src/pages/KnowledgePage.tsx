@@ -67,9 +67,14 @@ export const KnowledgePage: React.FC = () => {
       setLoadingContent(true);
       const content = await fetchDocumentContent(doc.id);
       setDocContent(content);
-    } catch (e) {
-      console.error(e);
-      setDocContent(null);
+    } catch (e: any) {
+      // In serverless / ephemeral environments or if doc was removed, handle cleanly
+      if (e?.response?.status === 404) {
+        setDocContent(null);
+      } else {
+        console.warn('Document content not currently available:', e?.message || e);
+        setDocContent(null);
+      }
     } finally {
       setLoadingContent(false);
     }
