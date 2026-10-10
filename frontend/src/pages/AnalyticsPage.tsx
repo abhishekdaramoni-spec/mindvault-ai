@@ -12,25 +12,20 @@ import {
   Cpu,
   RefreshCw,
   Sparkles,
+  ChevronRight,
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid,
-} from 'recharts';
 import { fetchAnalytics, AnalyticsData } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
-const VIOLET_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#6366f1', '#3b82f6'];
+const CATEGORY_COLORS: Record<string, string> = {
+  Technology: '#8b5cf6',
+  Algorithm: '#06b6d4',
+  Person: '#f59e0b',
+  Organization: '#10b981',
+  Topic: '#ec4899',
+  Concept: '#3b82f6',
+  Default: '#64748b',
+};
 
 export const AnalyticsPage: React.FC = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -53,6 +48,9 @@ export const AnalyticsPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const maxConceptCount = Math.max(...(data?.top_concepts?.map((c) => c.count) || [1]), 1);
+  const totalCategoryEntities = data?.categories?.reduce((acc, c) => acc + c.count, 0) || 1;
 
   return (
     <div className="space-y-6 pb-12 animate-fadeIn">
@@ -163,18 +161,34 @@ export const AnalyticsPage: React.FC = () => {
               No concept frequencies recorded yet.
             </div>
           ) : (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.top_concepts.slice(0, 7)} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1f293d" />
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} angle={-25} textAnchor="end" />
-                  <YAxis stroke="#94a3b8" fontSize={10} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#111827', borderColor: '#1f293d', borderRadius: '8px', fontSize: '11px' }}
-                  />
-                  <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="space-y-3 pt-1">
+              {data.top_concepts.slice(0, 7).map((c, idx) => {
+                const pct = Math.round((c.count / maxConceptCount) * 100);
+                const color = CATEGORY_COLORS[c.category] || CATEGORY_COLORS.Default;
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 font-semibold text-gray-200 truncate">
+                        <span className="w-4 text-[10px] text-gray-500 font-mono">{idx + 1}.</span>
+                        <span className="truncate">{c.name}</span>
+                        <span
+                          className="px-1.5 py-0.2 rounded text-[9px] font-mono"
+                          style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}
+                        >
+                          {c.category}
+                        </span>
+                      </div>
+                      <span className="text-gray-400 font-mono text-[11px]">{c.count} mentions</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-[#111827] overflow-hidden border border-[#1f293d]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: `linear-gradient(90deg, #8b5cf6, ${color})` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -194,28 +208,28 @@ export const AnalyticsPage: React.FC = () => {
               No entities categorized yet.
             </div>
           ) : (
-            <div className="h-64 w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={data.categories}
-                    dataKey="count"
-                    nameKey="category"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={4}
-                  >
-                    {data.categories.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={VIOLET_COLORS[index % VIOLET_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#111827', borderColor: '#1f293d', borderRadius: '8px', fontSize: '11px' }}
-                  />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+            <div className="space-y-3 pt-1">
+              {data.categories.map((entry, index) => {
+                const pct = Math.round((entry.count / totalCategoryEntities) * 100);
+                const color = CATEGORY_COLORS[entry.category] || CATEGORY_COLORS.Default;
+                return (
+                  <div key={index} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+                        <span className="font-semibold text-gray-200">{entry.category}</span>
+                      </div>
+                      <span className="text-gray-400 font-mono text-[11px]">{entry.count} ({pct}%)</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-[#111827] overflow-hidden border border-[#1f293d]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: color }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -225,23 +239,33 @@ export const AnalyticsPage: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-[#1a2336]">
             <h2 className="text-sm font-bold text-gray-200 flex items-center gap-2">
               <Activity className="w-4 h-4 text-emerald-400" />
-              <span>Document Ingestion Timeline</span>
+              <span>Document Ingestion Activity</span>
             </h2>
             <span className="text-[10px] text-gray-400 font-mono">Real Ingestion Dates</span>
           </div>
 
-          <div className="h-60 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data?.ingestion_timeline || []} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f293d" />
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} />
-                <YAxis stroke="#94a3b8" fontSize={10} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#111827', borderColor: '#1f293d', borderRadius: '8px', fontSize: '11px' }}
-                />
-                <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="space-y-3 pt-1">
+            {(!data?.ingestion_timeline || data.ingestion_timeline.length === 0) ? (
+              <p className="text-xs text-gray-500 py-10 text-center">No timeline activity.</p>
+            ) : (
+              data.ingestion_timeline.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-[#111827] border border-[#1f293d] text-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <div>
+                      <span className="font-bold text-gray-200 block">{item.date}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">Completed Document Indexing</span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">
+                    +{item.count} Files
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -255,7 +279,7 @@ export const AnalyticsPage: React.FC = () => {
             <span className="text-[10px] text-gray-400 font-mono">Density Indicator</span>
           </div>
 
-          <div className="space-y-2.5 max-h-60 overflow-y-auto">
+          <div className="space-y-2.5 max-h-60 overflow-y-auto pt-1">
             {(!data?.chunks_per_doc || data.chunks_per_doc.length === 0) ? (
               <p className="text-xs text-gray-500 py-10 text-center">No documents indexed.</p>
             ) : (
