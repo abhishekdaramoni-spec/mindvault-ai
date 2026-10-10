@@ -265,4 +265,9 @@ export const updateSettings = async (settings: { base_url: string; model: string
   return data;
 };
 
+export const checkHealth = async (): Promise<{ status: string; app: string; version: string; is_serverless?: boolean }> => {
+  const { data } = await api.get('/health');
+  return data;
+};
+
 export default api;

@@ -57,6 +57,35 @@ export const SettingsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Honest Architecture & Operating Modes Card */}
+      <div className="bg-[#121929] border border-[#1e293b] rounded-xl p-5 space-y-3">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+          <HardDrive className="w-4 h-4" />
+          <span>Deployment & Operating Modes</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 rounded-lg bg-[#0c111e] border border-[#1f293d] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-gray-200">Local Mode (Recommended)</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-violet-600/20 text-violet-300 border border-violet-500/30">Local Host</span>
+            </div>
+            <p className="text-gray-400 text-[11px] leading-relaxed">
+              Runs on your machine with direct access to local Ollama (<code className="text-violet-300">localhost:11434</code>), local SQLite database, and persistent file storage in <code className="text-cyan-300">./data/</code>.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-lg bg-[#0c111e] border border-[#1f293d] space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-gray-200">Hosted Mode (Vercel)</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-cyan-600/20 text-cyan-300 border border-cyan-500/30">Cloud Serverless</span>
+            </div>
+            <p className="text-gray-400 text-[11px] leading-relaxed">
+              Runs serverless Python backend with in-memory/ephemeral <code className="text-cyan-300">/tmp</code> storage and 384-d semantic HashingVectorizer. Local Ollama on your personal laptop is not directly reachable by Vercel serverless functions across public networks.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Ollama Configuration Card */}
       <form onSubmit={handleSave} className="bg-[#121929] border border-[#1e293b] rounded-xl p-6 space-y-5">
         <div className="flex items-center justify-between pb-4 border-b border-[#1e293b]">

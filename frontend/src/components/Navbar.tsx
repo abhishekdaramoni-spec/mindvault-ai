@@ -117,12 +117,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
         )}
       </div>
 
-      {/* Right Controls */}
+      {/* Right Controls: Honest Deployment Mode Indicator */}
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-600/15 border border-violet-500/30 text-cyan-300 text-xs font-semibold shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
-          <span>Local Intelligence Active</span>
-        </div>
+        <button
+          onClick={() => navigate('/settings')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm transition border ${
+            window.location.hostname.includes('vercel.app')
+              ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-300 hover:border-cyan-400'
+              : 'bg-violet-600/15 border-violet-500/30 text-cyan-300 hover:border-violet-400'
+          }`}
+          title={
+            window.location.hostname.includes('vercel.app')
+              ? 'Hosted Vercel Mode: Serverless SQLite & Hashing Vectorizer active. Run locally for full Ollama LLM support.'
+              : 'Local Mode: Full local Ollama & native filesystem storage active.'
+          }
+        >
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <span>
+            {window.location.hostname.includes('vercel.app')
+              ? 'Hosted Mode (Vercel)'
+              : 'Local Mode (Ollama)'}
+          </span>
+        </button>
 
         <button
           onClick={() => navigate('/settings')}
