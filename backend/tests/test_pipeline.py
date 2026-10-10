@@ -35,3 +35,30 @@ def test_plaintext_extraction(tmp_path):
     pages, total_pages = TextExtractor.extract_file(test_file, "md")
     assert total_pages == 1
     assert "Knowledge Architecture" in pages[0]["text"]
+
+
+def test_embedding_service_similarity():
+    from app.services.embedding_service import embedding_service
+    texts = [
+        "Quantization compresses weights from float32 to int8.",
+        "Convolutional layers process visual feature maps.",
+        "Attention mechanisms correlate tokens across sequence contexts."
+    ]
+    chunk_ids = ["c1", "c2", "c3"]
+    embedding_service.add_chunk_embeddings(chunk_ids, texts)
+    
+    results = embedding_service.search_similar("model quantization int8", top_k=2)
+    assert len(results) > 0
+    top_chunk_id, top_score = results[0]
+    assert top_chunk_id == "c1"
+    assert top_score > 0.0
+
+
+@pytest.mark.asyncio
+async def test_ollama_service_health():
+    from app.services.ollama_service import ollama_service
+    health = await ollama_service.check_health()
+    assert "is_reachable" in health
+    assert "selected_model" in health
+    assert isinstance(health["is_reachable"], bool)
+

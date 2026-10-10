@@ -16,6 +16,26 @@ async def lifespan(app: FastAPI):
     # Startup actions
     logger.info("Initializing MindVault database schema...")
     await init_db()
+    
+    # Check if vector index requires sync from stored database chunks
+    try:
+        from app.db.session import AsyncSessionLocal
+        from app.models.entities import DocumentChunk
+        from app.services.embedding_service import embedding_service
+        from sqlalchemy import select
+
+        if len(embedding_service.vectors) == 0:
+            async with AsyncSessionLocal() as session:
+                chunks = (await session.execute(select(DocumentChunk))).scalars().all()
+                if chunks:
+                    logger.info(f"Synchronizing vector store with {len(chunks)} database chunks...")
+                    c_ids = [c.id for c in chunks]
+                    c_texts = [c.content for c in chunks]
+                    embedding_service.add_chunk_embeddings(c_ids, c_texts)
+                    logger.info(f"Vector store synchronized successfully ({len(embedding_service.vectors)} vectors).")
+    except Exception as e:
+        logger.warning(f"Vector store startup synchronization warning: {e}")
+
     logger.info("MindVault AI backend initialized successfully.")
     yield
     # Shutdown actions
